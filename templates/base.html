@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TC Surf - Total Chaos Surf Store{% endblock %}</title>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'surf-blue': '#0ea5e9',
+                        'surf-teal': '#14b8a6',
+                        'surf-orange': '#f97316',
+                        'sand': '#fef3c7'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="surf-nav text-white shadow-lg relative">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-3xl font-bold surf-title">🏄‍♂️ TC Surf</a>
+                    <span class="text-sm opacity-90 wave-text font-medium">Total Chaos</span>
+                </div>
+
+                <div class="hidden md:flex space-x-6">
+                    <a href="/" class="hover:text-sand transition-colors">Home</a>
+                    <a href="/products" class="hover:text-sand transition-colors">Products</a>
+                    <a href="/cart" class="hover:text-sand transition-colors">Basket (<span id="cart-count">0</span>)</a>
+                    <a href="/admin" class="hover:text-sand transition-colors">Admin</a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button class="text-white" onclick="toggleMobileMenu()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <a href="/" class="block py-2 hover:text-sand transition-colors">Home</a>
+                <a href="/products" class="block py-2 hover:text-sand transition-colors">Products</a>
+                <a href="/cart" class="block py-2 hover:text-sand transition-colors">Basket (<span>0</span>)</a>
+                <a href="/admin" class="block py-2 hover:text-sand transition-colors">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="surf-footer py-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">🏄‍♂️ TC Surf</h3>
+                    <p class="text-gray-300">Premium surf gear for riders who live for the chaos of the waves.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="/" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="/products" class="hover:text-white transition-colors">Products</a></li>
+                        <li><a href="/cart" class="hover:text-white transition-colors">Basket</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Contact</h4>
+                    <p class="text-gray-300">📧 info@tcsurf.com</p>
+                    <p class="text-gray-300">📞 (555) SURF-999</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-4 text-center text-gray-400">
+                <p>&copy; 2024 TC Surf Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Update basket count
+        function updateCartCount(count) {
+            document.getElementById('cart-count').textContent = count;
+        }
+
+        // HTMX event listeners
+        document.body.addEventListener('htmx:afterRequest', function(event) {
+            if (event.detail.xhr.response) {
+                try {
+                    const response = JSON.parse(event.detail.xhr.response);
+                    if (response.cart_count !== undefined) {
+                        updateCartCount(response.cart_count);
+                    }
+                } catch (e) {
+                    // Response is not JSON, ignore
+                }
+            }
+        });
+    </script>
+</body>
+</html>

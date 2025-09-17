@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold mb-8">Admin Dashboard</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Quick Stats -->
+        <div class="lg:col-span-3">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl text-surf-blue mb-2">📦</div>
+                    <div class="text-2xl font-bold">{{ products|length }}</div>
+                    <div class="text-gray-600">Total Products</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl text-green-500 mb-2">✅</div>
+                    <div class="text-2xl font-bold">{{ orders|length }}</div>
+                    <div class="text-gray-600">Total Orders</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl text-orange-500 mb-2">📈</div>
+                    <div class="text-2xl font-bold">£{{ "%.0f"|format(orders|map(attribute='total_amount')|sum) }}</div>
+                    <div class="text-gray-600">Total Turnover</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 text-center">
+                    <div class="text-3xl text-red-500 mb-2">⚠️</div>
+                    <div class="text-2xl font-bold">{{ (products|selectattr('stock_quantity', 'lt', 5))|list|length }}</div>
+                    <div class="text-gray-600">Low Stock Items</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Management -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-6">Inventory Management</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left py-2">Product</th>
+                                <th class="text-left py-2">Category</th>
+                                <th class="text-right py-2">Price</th>
+                                <th class="text-right py-2">Stock</th>
+                                <th class="text-center py-2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr class="border-b hover:bg-gray-50" id="product-row-{{ product.product_id }}">
+                                <td class="py-3">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-lg">
+                                            {% if "Longboard" in product.name %}🏄‍♂️
+                                            {% elif "Shortboard" in product.name %}🏄‍♀️
+                                            {% elif "SUP" in product.name %}🏄
+                                            {% elif "Wetsuit" in product.name %}🤽‍♂️
+                                            {% elif "Leash" in product.name %}🔗
+                                            {% elif "Wax" in product.name %}🟡
+                                            {% elif "Fin" in product.name %}🔱
+                                            {% elif "Tee" in product.name %}👕
+                                            {% elif "Boardshorts" in product.name %}🩳
+                                            {% else %}🏄‍♂️
+                                            {% endif %}
+                                        </span>
+                                        <div>
+                                            <p class="font-medium">{{ product.name }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 text-gray-600">{{ product.category.name }}</td>
+                                <td class="py-3 text-right font-semibold">£{{ "%.2f"|format(product.price) }}</td>
+                                <td class="py-3 text-right">
+                                    <span class="{% if product.stock_quantity < 5 %}text-red-500 font-bold{% elif product.stock_quantity < 10 %}text-orange-500{% else %}text-green-500{% endif %}">
+                                        {{ product.stock_quantity }}
+                                    </span>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <button onclick="openStockModal({{ product.product_id }}, '{{ product.name }}', {{ product.stock_quantity }})"
+                                            class="bg-surf-blue hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                                        Update Stock
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-6">Recent Orders</h2>
+                <div class="space-y-4">
+                    {% for order in orders[-5:] %}
+                    <div class="border-l-4 border-surf-blue pl-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-semibold">Order #{{ order.order_id }}</p>
+                                <p class="text-sm text-gray-600">{{ order.customer.get_full_name() }}</p>
+                                <p class="text-sm text-gray-500">{{ order.order_date.strftime('%m/%d %I:%M %p') }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-green-600">£{{ "%.2f"|format(order.total_amount) }}</p>
+                                <span class="text-xs px-2 py-1 rounded-full
+                                    {% if order.status.value == 'delivered' %}bg-green-100 text-green-800
+                                    {% elif order.status.value == 'shipped' %}bg-blue-100 text-blue-800
+                                    {% elif order.status.value == 'confirmed' %}bg-orange-100 text-orange-800
+                                    {% else %}bg-gray-100 text-gray-800
+                                    {% endif %}">
+                                    {{ order.status.value.title() }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Update Modal -->
+<div id="stockModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-semibold mb-4">Update Stock</h3>
+        <form hx-post="/admin/product/update"
+              hx-target="body"
+              hx-swap="none"
+              hx-on:htmx:after-request="closeStockModal(); location.reload();">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+                <p id="modalProductName" class="text-gray-900 font-semibold"></p>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Current Stock</label>
+                <p id="modalCurrentStock" class="text-gray-600"></p>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">New Stock Quantity</label>
+                <input type="number" name="stock" min="0" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-surf-blue focus:border-transparent">
+                <input type="hidden" name="product_id" id="modalProductId">
+            </div>
+            <div class="flex space-x-3">
+                <button type="submit" class="flex-1 bg-surf-blue hover:bg-blue-600 text-white py-2 rounded-lg font-semibold transition-colors">
+                    Update Stock
+                </button>
+                <button type="button" onclick="closeStockModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-lg font-semibold transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openStockModal(productId, productName, currentStock) {
+        document.getElementById('modalProductId').value = productId;
+        document.getElementById('modalProductName').textContent = productName;
+        document.getElementById('modalCurrentStock').textContent = currentStock + ' units';
+        document.getElementById('stockModal').classList.remove('hidden');
+    }
+
+    function closeStockModal() {
+        document.getElementById('stockModal').classList.add('hidden');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('stockModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+            closeStockModal();
+        }
+    });
+</script>
+{% endblock %}

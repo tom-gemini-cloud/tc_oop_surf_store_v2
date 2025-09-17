@@ -7,7 +7,12 @@
       "Bash(pip uninstall:*)",
       "Bash(venvScripts:*)",
       "Bash(\"venv/Scripts/pip\" install fastapi uvicorn jinja2 python-multipart)",
-      "Bash(\"venv/Scripts/python\" app.py)"
+      "Bash(\"venv/Scripts/python\" app.py)",
+      "Bash(move enums.py surf_store )",
+      "Bash(move models.py surf_store )",
+      "Bash(move orders.py surf_store )",
+      "Bash(move data_structures.py surf_store )",
+      "Bash(move demo.py surf_store)"
     ],
     "deny": [],
     "ask": []
